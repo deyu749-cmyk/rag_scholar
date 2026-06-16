@@ -127,17 +127,22 @@ def _execute_intent(intent: str, params: dict,
     return result
 
 
-def _format_execution_result(exec_result: dict) -> tuple[str, dict[str, dict]]:
+def _format_execution_result(exec_result: dict,
+                             source_filter: list[str] | None = None) -> tuple[str, dict[str, dict]]:
     """将函数执行结果格式化为文本 + 参考文献映射表，供合成阶段使用"""
     intent = exec_result["intent"]
     data = exec_result.get("data")
     refs_map = {}  # key: "[来源N]" → {source, text, score}
 
+    filter_note = ""
+    if source_filter:
+        filter_note = f"\n【文献筛选】用户仅勾选了以下文献进行检索: {', '.join(source_filter)}"
+
     if exec_result.get("error"):
-        return f"执行失败: {exec_result['error']}", refs_map
+        return f"执行失败: {exec_result['error']}{filter_note}", refs_map
 
     if intent == "CHAT" or data is None:
-        return "", refs_map
+        return filter_note.strip(), refs_map
 
     if intent == "SEARCH":
         lines = []
@@ -149,10 +154,19 @@ def _format_execution_result(exec_result: dict) -> tuple[str, dict[str, dict]]:
             lines.append(f"{marker} {source} (相关度: {score:.3f})\n原文: {doc_text}")
             refs_map[marker] = {"source": source, "text": doc_text, "score": score}
         refs_text = "\n".join(lines)
+        has_results = len(data.get("results", [])) > 0
+        empty_note = ""
+        if not has_results:
+            empty_note = (
+                "\n\n⚠ 未检索到相关文献段落。如果用户勾选了特定的文献，"
+                "可能是因为所选文献中不包含与查询相关的内容，或者文献尚未成功索引。"
+                "请在回复中告知用户这一情况，并建议他们扩大文献选择范围或调整查询关键词。"
+            )
         return (
             f"检索模式: {data.get('mode', 'chunks')}\n"
             f"分析结果:\n{data.get('analysis', '')}\n\n"
-            f"检索到的文献原文（共{len(data.get('results', []))}条）:\n{refs_text}",
+            f"检索到的文献原文（共{len(data.get('results', []))}条）:\n{refs_text}"
+            f"{empty_note}{filter_note}",
             refs_map
         )
 
@@ -166,7 +180,7 @@ def _format_execution_result(exec_result: dict) -> tuple[str, dict[str, dict]]:
             for r in data.get("references_used", [])
         ])
         return (
-            f"风格: {data.get('style', 'polish')}\n改写结果:\n{data.get('rewritten_text', '')}",
+            f"风格: {data.get('style', 'polish')}\n改写结果:\n{data.get('rewritten_text', '')}{filter_note}",
             refs_map
         )
 
@@ -179,7 +193,7 @@ def _format_execution_result(exec_result: dict) -> tuple[str, dict[str, dict]]:
             f"- {r['source']}" for r in data.get("references_used", [])
         ])
         return (
-            f"类型: {data.get('scope', 'review')}\n生成结果:\n{data.get('text', '')}\n\n引用的文献:\n{refs}",
+            f"类型: {data.get('scope', 'review')}\n生成结果:\n{data.get('text', '')}\n\n引用的文献:\n{refs}{filter_note}",
             refs_map
         )
 
@@ -194,11 +208,11 @@ def _format_execution_result(exec_result: dict) -> tuple[str, dict[str, dict]]:
             refs_map[marker] = {"source": source, "text": text, "score": score}
         refs_text = "\n".join(lines)
         return (
-            f"标注结果:\n{data.get('annotated_text', '')}\n\n可引用的文献原文:\n{refs_text}",
+            f"标注结果:\n{data.get('annotated_text', '')}\n\n可引用的文献原文:\n{refs_text}{filter_note}",
             refs_map
         )
 
-    return "", refs_map
+    return filter_note.strip(), refs_map
 
 
 def handle_chat_message(messages: list[dict],
@@ -233,9 +247,16 @@ def handle_chat_message(messages: list[dict],
 
     # 阶段 2b：合成最终回复
     if intent == "CHAT" and not exec_result.get("error"):
+        filter_context = ""
+        if source_filter:
+            filter_context = (
+                f"\n\n【文献筛选】用户已勾选以下文献: {', '.join(source_filter)}。"
+                "如果用户的问题涉及检索文献内容而你无法直接访问，请如实告知，"
+                "并建议用户提出具体可检索的问题。"
+            )
         final = call_claude_multi(
             system_prompt=CHAT_SYNTHESIS_PROMPT,
-            messages=messages,
+            messages=messages + ([{"role": "system", "content": filter_context}] if filter_context else []),
             max_tokens=CHAT_MAX_TOKENS
         )
         return {
@@ -244,7 +265,7 @@ def handle_chat_message(messages: list[dict],
         }
 
     # 其他意图：拼接执行结果后再合成
-    result_text, refs_map = _format_execution_result(exec_result)
+    result_text, refs_map = _format_execution_result(exec_result, source_filter)
 
     synthesis_messages = list(messages)
     synthesis_messages.append({

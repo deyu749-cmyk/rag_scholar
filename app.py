@@ -76,18 +76,43 @@ def get_libs():
     return jsonify({"libs": libs})
 
 
-# ===== 获取库中的文件列表 =====
+# ===== 获取库中的文件列表（仅返回已索引的文件）=====
 @app.route("/api/libs/<lib_name>/files", methods=["GET"])
 def get_lib_files(lib_name):
     lib_path = os.path.join(PAPERS_DIR, lib_name)
     if not os.path.exists(lib_path):
         return jsonify({"error": f"库 {lib_name} 不存在"}), 404
 
-    files = sorted([
+    all_files = sorted([
         f for f in os.listdir(lib_path)
         if f.lower().endswith(('.pdf', '.docx')) and not f.startswith('.')
     ])
-    return jsonify({"lib": lib_name, "files": files})
+
+    # 查询 ChromaDB 中有哪些文件已索引（有向量块）
+    indexed_sources = set()
+    try:
+        collection = get_collection(lib_name)
+        existing = collection.get(include=["metadatas"])
+        if existing and existing["metadatas"]:
+            for meta in existing["metadatas"]:
+                if meta and meta.get("type") != "file_hash":
+                    src = meta.get("source", "")
+                    if src:
+                        indexed_sources.add(src)
+    except Exception:
+        pass
+
+    # 只返回有向量块的文件
+    files = [f for f in all_files if f in indexed_sources]
+    skipped = len(all_files) - len(files)
+
+    return jsonify({
+        "lib": lib_name,
+        "files": files,
+        "total_in_dir": len(all_files),
+        "indexed": len(files),
+        "skipped": skipped
+    })
 
 
 # ===== SSE 索引进度 =====
