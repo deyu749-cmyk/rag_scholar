@@ -215,6 +215,7 @@ def search_chunks(query: str, lib_names: list[str],
 
 # ===== 摘要集合检索 =====
 def search_summaries(query: str, lib_names: list[str],
+                     source_filter: Optional[list[str]] = None,
                      initial_k: int = 30,
                      final_k: int = 15) -> list[dict]:
     """
@@ -239,12 +240,22 @@ def search_summaries(query: str, lib_names: list[str],
         except Exception:
             continue
 
+        where_filter = None
+        if source_filter:
+            if len(source_filter) == 1:
+                where_filter = {"source": source_filter[0]}
+            else:
+                where_filter = {"source": {"$in": source_filter}}
+
         try:
-            results = summary_collection.query(
-                query_embeddings=[query_embedding],
-                n_results=initial_k,
-                include=["documents", "metadatas", "distances"]
-            )
+            kwargs = {
+                "query_embeddings": [query_embedding],
+                "n_results": initial_k,
+                "include": ["documents", "metadatas", "distances"]
+            }
+            if where_filter:
+                kwargs["where"] = where_filter
+            results = summary_collection.query(**kwargs)
         except Exception:
             continue
 
@@ -391,9 +402,9 @@ def search_and_analyze(query, lib_names, source_filter=None, mode=None):
 
     if search_mode == "summaries":
         # 摘要检索也支持双查询
-        results_cn = search_summaries(query, lib_names)
+        results_cn = search_summaries(query, lib_names, source_filter=source_filter)
         if en_query != query:
-            results_en = search_summaries(en_query, lib_names)
+            results_en = search_summaries(en_query, lib_names, source_filter=source_filter)
             # 合并去重（根据 id）
             seen = {r['id'] for r in results_cn}
             for r in results_en:

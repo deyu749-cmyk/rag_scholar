@@ -224,6 +224,7 @@ def generate_literature_review(topic: str, lib_names: list[str],
             summaries = search_summaries(
                 query=topic,
                 lib_names=lib_names,
+                source_filter=source_filter,
                 initial_k=30,
                 final_k=15
             )
