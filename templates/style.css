@@ -1,0 +1,698 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ===== 顶部 ===== */
+.header {
+    text-align: center;
+    padding: 24px 0;
+    margin-bottom: 24px;
+}
+
+.header h1 {
+    font-size: 28px;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.header .subtitle {
+    font-size: 15px;
+    color: #8892b0;
+    margin-top: 6px;
+}
+
+/* ===== Tab 切换 ===== */
+.tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #2d2d44;
+}
+
+.tab-btn {
+    padding: 14px 28px;
+    border: none;
+    background: none;
+    font-size: 16px;
+    color: #8892b0;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    color: #ccd6f6;
+}
+
+.tab-btn.active {
+    color: #64ffda;
+    border-bottom-color: #64ffda;
+    font-weight: 600;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ===== 面板通用 ===== */
+.panel {
+    background: #16213e;
+    border: 1px solid #2d2d44;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.panel h3 {
+    font-size: 15px;
+    color: #8892b0;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+/* ===== 文献库选择 ===== */
+.lib-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.lib-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #0f3460;
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lib-checkbox:hover {
+    border-color: #64ffda;
+}
+
+.lib-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #64ffda;
+}
+
+.lib-checkbox .lib-name {
+    font-size: 15px;
+    color: #ccd6f6;
+    font-weight: 500;
+}
+
+.lib-checkbox .lib-info {
+    font-size: 12px;
+    color: #8892b0;
+    display: block;
+}
+
+/* ===== 搜索区域 ===== */
+.search-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.search-wrapper textarea {
+    flex: 1;
+    padding: 14px 16px;
+    background: #0f3460;
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 16px;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.search-wrapper textarea:focus {
+    outline: none;
+    border-color: #64ffda;
+    box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.1);
+}
+
+.search-wrapper textarea::placeholder {
+    color: #5a6a8a;
+}
+
+.search-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ===== 按钮 ===== */
+.btn {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: #64ffda;
+    color: #0a192f;
+}
+
+.btn-primary:hover {
+    background: #4cd9b0;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #233554;
+    color: #8892b0;
+    border: 1px solid #2d2d44;
+}
+
+.btn-secondary:hover {
+    color: #ccd6f6;
+    border-color: #64ffda;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== 结果区域 ===== */
+.results-panel {
+    background: #16213e;
+    border: 1px solid #2d2d44;
+    border-radius: 10px;
+    padding: 24px;
+    display: none;
+}
+
+.results-panel.show {
+    display: block;
+}
+
+.results-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2d2d44;
+}
+
+.results-header h3 {
+    font-size: 17px;
+    color: #ccd6f6;
+    margin: 0;
+}
+
+.mode-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.mode-badge.chunks {
+    background: rgba(100, 255, 218, 0.15);
+    color: #64ffda;
+}
+
+.mode-badge.summaries {
+    background: rgba(255, 200, 100, 0.15);
+    color: #ffc864;
+}
+
+.analysis-content {
+    font-size: 16px;
+    line-height: 1.9;
+    color: #ccd6f6;
+    white-space: pre-wrap;
+}
+
+/* ===== 引用折叠 ===== */
+.ref-toggle {
+    display: inline;
+    background: rgba(100, 255, 218, 0.12);
+    color: #64ffda;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ref-toggle:hover {
+    background: rgba(100, 255, 218, 0.25);
+}
+
+.ref-block {
+    display: none;
+    background: #0f3460;
+    border-left: 3px solid #64ffda;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #a8b2d1;
+    border-radius: 0 6px 6px 0;
+    line-height: 1.7;
+}
+
+.ref-block.show {
+    display: block;
+}
+
+.ref-block .ref-source {
+    font-size: 12px;
+    color: #5a6a8a;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #1a4a7a;
+}
+
+/* ===== 进度面板 ===== */
+.progress-panel {
+    background: #0a0f1e;
+    border: 1px solid #1a4a7a;
+    border-radius: 10px;
+    padding: 20px;
+    max-height: 450px;
+    overflow-y: auto;
+    display: none;
+}
+
+.progress-panel.show {
+    display: block;
+}
+
+.progress-bar-wrapper {
+    background: #16213e;
+    border-radius: 4px;
+    height: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #64ffda, #4cd9b0);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+}
+
+.progress-line {
+    font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+    font-size: 13px;
+    color: #5a6a8a;
+    padding: 3px 0;
+}
+
+.progress-line.success {
+    color: #64ffda;
+}
+
+.progress-line.error {
+    color: #e74c3c;
+}
+
+.progress-line.info {
+    color: #ffc864;
+}
+
+/* ===== 索引选项 ===== */
+.index-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.index-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: #a8b2d1;
+    cursor: pointer;
+}
+
+.index-options input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #64ffda;
+}
+
+/* ===== 写作模式 ===== */
+.writing-area {
+    display: flex;
+    gap: 20px;
+    min-height: 520px;
+}
+
+.writing-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.writing-col label {
+    font-size: 14px;
+    color: #8892b0;
+    margin-bottom: 8px;
+}
+
+.writing-textarea {
+    flex: 1;
+    padding: 16px;
+    background: #0f3460;
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 16px;
+    line-height: 1.8;
+    resize: none;
+    font-family: inherit;
+}
+
+.writing-textarea:focus {
+    outline: none;
+    border-color: #64ffda;
+}
+
+.writing-textarea::placeholder {
+    color: #5a6a8a;
+}
+
+.writing-output {
+    flex: 1;
+    padding: 16px;
+    background: #0a192f;
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    color: #ccd6f6;
+    font-size: 16px;
+    line-height: 1.8;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.writing-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.style-btn {
+    padding: 8px 16px;
+    border: 1px solid #2d2d44;
+    border-radius: 6px;
+    background: #16213e;
+    color: #8892b0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.style-btn:hover {
+    border-color: #64ffda;
+    color: #64ffda;
+}
+
+.style-btn.active {
+    background: #64ffda;
+    color: #0a192f;
+    border-color: #64ffda;
+    font-weight: 600;
+}
+
+.writing-chat-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.writing-chat-bar input {
+    flex: 1;
+    padding: 10px 14px;
+    background: #0f3460;
+    border: 1px solid #1a4a7a;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 15px;
+}
+
+.writing-chat-bar input:focus {
+    outline: none;
+    border-color: #64ffda;
+}
+
+.writing-chat-bar input::placeholder {
+    color: #5a6a8a;
+}
+
+/* ===== 写作子模式切换 ===== */
+.writing-mode-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.writing-mode-btn {
+    padding: 10px 20px;
+    border: 1px solid #2d2d44;
+    border-radius: 8px;
+    background: #16213e;
+    color: #8892b0;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.writing-mode-btn:hover {
+    border-color: #64ffda;
+    color: #ccd6f6;
+}
+
+.writing-mode-btn.active {
+    background: #0f3460;
+    color: #64ffda;
+    border-color: #64ffda;
+    font-weight: 600;
+}
+
+.writing-mode-content {
+    display: none;
+}
+
+.writing-mode-content.active {
+    display: block;
+}
+
+/* ===== 参考文献列表 ===== */
+.ref-list {
+    display: none;
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: #0f3460;
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.ref-list h4 {
+    font-size: 13px;
+    color: #64ffda;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.ref-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #16213e;
+    border-left: 3px solid #64ffda;
+    border-radius: 0 6px 6px 0;
+}
+
+.ref-item:last-child {
+    margin-bottom: 0;
+}
+
+.ref-source-name {
+    font-size: 14px;
+    color: #ccd6f6;
+    font-weight: 500;
+}
+
+.ref-preview {
+    font-size: 13px;
+    color: #8892b0;
+    margin-top: 6px;
+    line-height: 1.6;
+}
+
+.ref-score {
+    display: inline-block;
+    font-size: 12px;
+    color: #5a6a8a;
+    margin-top: 6px;
+    padding: 2px 8px;
+    background: rgba(100, 255, 218, 0.1);
+    border-radius: 4px;
+}
+
+/* ===== 加载动画 ===== */
+.loading {
+    display: none;
+    text-align: center;
+    padding: 50px;
+}
+
+.loading.show {
+    display: block;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #233554;
+    border-top-color: #64ffda;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 14px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 15px;
+    color: #8892b0;
+}
+
+/* ===== 历史记录 ===== */
+.history-panel {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #2d2d44;
+}
+
+.history-panel h3 {
+    font-size: 14px;
+    color: #5a6a8a;
+    margin-bottom: 10px;
+}
+
+.history-item {
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    background: #0f3460;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.history-item:hover {
+    background: #1a4a7a;
+}
+
+.history-item .history-query {
+    font-size: 14px;
+    color: #ccd6f6;
+}
+
+.history-item .history-time {
+    font-size: 11px;
+    color: #5a6a8a;
+    margin-top: 2px;
+}
+
+/* ===== 工具栏 ===== */
+.toolbar {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #2d2d44;
+}
+
+/* ===== 滚动条 ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a192f;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #233554;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2d4a6a;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+    .writing-area {
+        flex-direction: column;
+    }
+    .search-wrapper {
+        flex-direction: column;
+    }
+    .search-btns {
+        flex-direction: row;
+    }
+    .lib-checkboxes {
+        flex-direction: column;
+    }
+}
