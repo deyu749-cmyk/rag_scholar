@@ -2,9 +2,14 @@
 集中配置管理
 """
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # ===== 乐沃联 API（Embedding + Claude 分析）=====
-LEVOLINK_API_BASE = "https://ai.levolink.com/v1"
-LEVOLINK_API_KEY = "sk-PUDjBy6EgmiG5DQqfiC7bz8EcvAyXkqXeRC40MlFXynu35jf"
+LEVOLINK_API_BASE = os.getenv("LEVOLINK_API_BASE", "https://ai.levolink.com/v1")
+LEVOLINK_API_KEY = os.getenv("LEVOLINK_API_KEY")
 
 # Embedding 模型
 EMBEDDING_MODEL = "text-embedding-3-large"
@@ -15,7 +20,7 @@ CHAT_MODEL = "claude-sonnet-4-6"
 CHAT_MAX_TOKENS = 8192
 
 # ===== Cohere Rerank =====
-COHERE_API_KEY = "Pi7BPKyntxvLjm40xxp7i8UCtq65RVRmKd74Ex1N"
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 COHERE_RERANK_MODEL = "rerank-v3.5"
 
 # ===== ChromaDB =====
