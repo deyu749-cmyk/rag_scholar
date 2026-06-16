@@ -744,9 +744,7 @@ body {
     background: #1a1715;
     flex-shrink: 0;
     max-height: 260px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .paper-panel-header {
@@ -790,8 +788,6 @@ body {
 }
 
 .paper-list {
-    flex: 1;
-    overflow-y: auto;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
