@@ -18,6 +18,19 @@
                 </div>
             </div>
             <div class="header-actions">
+                <!-- Conversation manager -->
+                <div class="conv-manager" id="conv-manager">
+                    <button class="btn btn-sm" onclick="toggleConvMenu()" title="对话管理">
+                        <span id="conv-label">新对话</span> ▾
+                    </button>
+                    <div class="conv-dropdown" id="conv-dropdown">
+                        <div class="conv-dropdown-header">已保存的对话</div>
+                        <div class="conv-list" id="conv-list"></div>
+                        <div class="conv-dropdown-footer">
+                            <button class="btn btn-sm" onclick="newConversation()">+ 新建对话</button>
+                        </div>
+                    </div>
+                </div>
                 <a href="/index-admin" class="btn btn-sm">管理索引</a>
                 <button class="btn btn-sm" onclick="clearChat()">清空对话</button>
             </div>
@@ -25,7 +38,28 @@
 
         <!-- Library chips -->
         <div class="lib-bar" id="lib-bar">
-            <span style="font-size:12px;color:#57534e;margin-right:4px;align-self:center;">文献库:</span>
+            <span class="lib-bar-label">文献库:</span>
+            <span class="lib-bar-hint" id="lib-bar-hint">请选择文献库以开始</span>
+        </div>
+
+        <!-- Paper selection panel -->
+        <div class="paper-panel" id="paper-panel" style="display:none;">
+            <div class="paper-panel-header">
+                <span>文献筛选（按篇选择）</span>
+                <div class="paper-panel-actions">
+                    <button class="btn btn-sm" onclick="selectAllPapers()">全选</button>
+                    <button class="btn btn-sm" onclick="deselectAllPapers()">全不选</button>
+                    <button class="btn btn-sm" onclick="togglePaperPanel()">收起</button>
+                </div>
+            </div>
+            <div class="paper-search">
+                <input type="text" class="paper-search-input" id="paper-search-input"
+                    placeholder="搜索文献名称..." oninput="filterPapers()">
+            </div>
+            <div class="paper-list" id="paper-list"></div>
+            <div class="paper-panel-footer">
+                <span id="paper-count">已选 0 篇</span>
+            </div>
         </div>
 
         <!-- Chat messages -->
@@ -34,7 +68,8 @@
                 <div class="chat-empty" id="chat-empty">
                     <div class="chat-empty-icon">📚</div>
                     <h2>非洲文学研究助手</h2>
-                    <p>我可以帮你检索文献、润色学术文本、生成文献综述、标注引用来源。请在上方选择文献库，然后开始对话。</p>
+                    <p>我可以帮你检索文献、润色学术文本、生成文献综述、标注引用来源。</p>
+                    <p>请先选择文献库，然后开始对话。你也可以点击文献库旁的展开按钮筛选具体文献。</p>
                 </div>
             </div>
         </div>
@@ -45,9 +80,17 @@
                 <textarea class="chat-input" id="chat-input" rows="1"
                     placeholder="输入你的问题或粘贴需要处理的文本..."
                     onkeydown="handleInputKey(event)"></textarea>
-                <button class="send-btn" id="send-btn" onclick="sendMessage()" title="发送 (Ctrl+Enter)">➤</button>
+                <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="语音输入">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                </button>
+                <button class="send-btn" id="send-btn" onclick="sendMessage()" title="发送 (Enter)">➤</button>
             </div>
-            <div class="input-hint">Enter 发送 · Shift+Enter 换行 · 支持检索、润色、综述、标注</div>
+            <div class="input-hint">Enter 发送 · Shift+Enter 换行 · 点击 🎤 语音输入</div>
         </div>
 
         <!-- Toast -->

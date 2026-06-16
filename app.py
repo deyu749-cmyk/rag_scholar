@@ -368,6 +368,7 @@ def unified_chat():
     data = request.get_json()
     messages = data.get("messages", [])
     lib_names = data.get("libs", [])
+    source_filter = data.get("files", None)  # 可选，限定检索的文件名
 
     if not messages:
         return jsonify({"error": "消息列表不能为空"}), 400
@@ -375,7 +376,7 @@ def unified_chat():
         return jsonify({"error": "请选择至少一个文献库"}), 400
 
     try:
-        result = handle_chat_message(messages, lib_names)
+        result = handle_chat_message(messages, lib_names, source_filter)
         return jsonify({
             "role": "assistant",
             "content": result["content"],
