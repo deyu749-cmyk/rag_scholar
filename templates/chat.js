@@ -245,6 +245,7 @@ function updatePaperCount() {
 // ===== Voice Input =====
 let recognition = null;
 let isListening = false;
+let voiceTranscript = '';  // accumulates final transcripts across auto-restarts
 
 function initRecognition() {
     if (recognition) return;
@@ -260,16 +261,19 @@ function initRecognition() {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-        let transcript = '';
+        let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
+            const result = event.results[i];
+            if (result.isFinal) {
+                voiceTranscript += result[0].transcript;
+            } else {
+                interim += result[0].transcript;
+            }
         }
         const input = document.getElementById('chat-input');
-        if (transcript) {
-            input.value = transcript;
-            input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 200) + 'px';
-        }
+        input.value = voiceTranscript + interim;
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 200) + 'px';
     };
 
     recognition.onerror = (event) => {
@@ -282,7 +286,6 @@ function initRecognition() {
 
     recognition.onend = () => {
         if (isListening) {
-            // Auto-restart if still listening
             try { recognition.start(); } catch (e) {}
         }
     };
@@ -301,13 +304,13 @@ function toggleVoice() {
 
 function startListening() {
     isListening = true;
+    voiceTranscript = '';
     const btn = document.getElementById('mic-btn');
     btn.classList.add('listening');
     btn.title = '正在聆听... (点击停止)';
     document.getElementById('chat-input').placeholder = '🎤 正在聆听...';
     try {
         recognition.start();
-        showToast('正在聆听...');
     } catch (e) {
         // Already started
     }
