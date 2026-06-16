@@ -743,7 +743,7 @@ body {
     padding: 12px 20px;
     background: #1a1715;
     flex-shrink: 0;
-    max-height: 260px;
+    max-height: 280px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -796,7 +796,17 @@ body {
     flex-wrap: wrap;
     gap: 6px;
     align-content: flex-start;
+    padding-right: 4px;
 }
+
+/* More visible scrollbar for paper list */
+.paper-list::-webkit-scrollbar { width: 8px; }
+.paper-list::-webkit-scrollbar-track { background: #1c1917; border-radius: 4px; }
+.paper-list::-webkit-scrollbar-thumb { background: #78716c; border-radius: 4px; }
+.paper-list::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+/* Firefox scrollbar */
+.paper-list { scrollbar-width: thin; scrollbar-color: #78716c #1c1917; }
 
 .paper-item {
     display: flex;
