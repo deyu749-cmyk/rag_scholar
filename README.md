@@ -1,5 +1,7 @@
 # RAG Scholar — 文献语义检索系统
 
+//Welcome!  My first reader----MXC 
+//Don't forget to star my project❤️
 基于 RAG（检索增强生成）架构的学术文献语义检索与智能分析系统，专为后殖民文学与文化研究领域设计。
 
 ## 核心功能

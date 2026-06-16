@@ -202,6 +202,32 @@ def call_claude(system_prompt: str, user_content: str,
     return data["choices"][0]["message"]["content"]
 
 
+def call_claude_multi(system_prompt: str, messages: list[dict],
+                      max_tokens: int = CHAT_MAX_TOKENS) -> str:
+    """调用 Claude（OpenAI 兼容），支持多轮对话消息"""
+    headers = {
+        "Authorization": f"Bearer {LEVOLINK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": CHAT_MODEL,
+        "max_tokens": max_tokens,
+        "messages": [
+            {"role": "system", "content": system_prompt}
+        ] + messages
+    }
+
+    response = requests.post(
+        f"{LEVOLINK_API_BASE}/chat/completions",
+        headers=headers,
+        json=payload,
+        timeout=120
+    )
+    response.raise_for_status()
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
+
+
 # ===== 文件哈希（增量更新用）=====
 def file_hash(filepath: str) -> str:
     h = hashlib.md5()

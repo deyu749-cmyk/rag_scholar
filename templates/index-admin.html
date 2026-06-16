@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>索引管理 · RAG Scholar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <h1>索引管理</h1>
+                <div style="font-size:14px;color:#78716c;margin-top:4px;">管理文献库的向量索引和 AI 摘要</div>
+            </div>
+            <a href="/" class="btn">← 返回对话</a>
+        </div>
+
+        <!-- Library selection -->
+        <div class="panel">
+            <h3>选择文献库</h3>
+            <div class="lib-checkboxes" id="lib-checkboxes-index" style="margin-bottom:16px;"></div>
+
+            <div class="index-options">
+                <label>
+                    <input type="checkbox" id="opt-force-rebuild">
+                    强制重建（删除旧索引）
+                </label>
+                <label>
+                    <input type="checkbox" id="opt-gen-summaries" checked>
+                    生成 AI 摘要
+                </label>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" id="btn-start-index" onclick="startIndexing()">开始索引</button>
+                <button class="btn btn-danger" id="btn-delete-index" onclick="deleteSelectedIndex()">删除索引</button>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-panel" id="progress-panel">
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div id="progress-log"></div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

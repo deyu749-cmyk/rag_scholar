@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Scholar · 非洲文学研究助手</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="header-logo">A</div>
+                <div>
+                    <div class="header-title">RAG Scholar</div>
+                    <div class="header-subtitle">非洲文学研究助手</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/index-admin" class="btn btn-sm">管理索引</a>
+                <button class="btn btn-sm" onclick="clearChat()">清空对话</button>
+            </div>
+        </div>
+
+        <!-- Library chips -->
+        <div class="lib-bar" id="lib-bar">
+            <span style="font-size:12px;color:#57534e;margin-right:4px;align-self:center;">文献库:</span>
+        </div>
+
+        <!-- Chat messages -->
+        <div class="chat-area-wrapper">
+            <div class="chat-area" id="chat-area">
+                <div class="chat-empty" id="chat-empty">
+                    <div class="chat-empty-icon">📚</div>
+                    <h2>非洲文学研究助手</h2>
+                    <p>我可以帮你检索文献、润色学术文本、生成文献综述、标注引用来源。请在上方选择文献库，然后开始对话。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="input-area">
+            <div class="input-row">
+                <textarea class="chat-input" id="chat-input" rows="1"
+                    placeholder="输入你的问题或粘贴需要处理的文本..."
+                    onkeydown="handleInputKey(event)"></textarea>
+                <button class="send-btn" id="send-btn" onclick="sendMessage()" title="发送 (Ctrl+Enter)">➤</button>
+            </div>
+            <div class="input-hint">Enter 发送 · Shift+Enter 换行 · 支持检索、润色、综述、标注</div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+</html>

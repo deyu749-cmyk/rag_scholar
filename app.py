@@ -18,6 +18,7 @@ from retriever import (
     search_and_analyze, summarize_conversation, recheck_analysis
 )
 from writer import academic_rewrite, writing_chat, generate_literature_review, annotate_citations
+from chat_router import handle_chat_message
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -27,7 +28,12 @@ CORS(app)
 
 @app.route("/")
 def serve_index():
-    return send_from_directory(TEMPLATES_DIR, "index.html")
+    return send_from_directory(TEMPLATES_DIR, "chat.html")
+
+
+@app.route("/index-admin")
+def serve_index_admin():
+    return send_from_directory(TEMPLATES_DIR, "index-admin.html")
 
 
 # ===== 文献库列表 =====
@@ -354,6 +360,29 @@ def citation_annotate():
         })
     except Exception as e:
         return jsonify({"error": f"引用标注失败: {str(e)}"}), 500
+
+
+# ===== 统一聊天端点 =====
+@app.route("/api/chat", methods=["POST"])
+def unified_chat():
+    data = request.get_json()
+    messages = data.get("messages", [])
+    lib_names = data.get("libs", [])
+
+    if not messages:
+        return jsonify({"error": "消息列表不能为空"}), 400
+    if not lib_names:
+        return jsonify({"error": "请选择至少一个文献库"}), 400
+
+    try:
+        result = handle_chat_message(messages, lib_names)
+        return jsonify({
+            "role": "assistant",
+            "content": result["content"],
+            "metadata": result.get("metadata", {})
+        })
+    except Exception as e:
+        return jsonify({"error": f"处理失败: {str(e)}"}), 500
 
 
 # ===== 删除索引 =====
