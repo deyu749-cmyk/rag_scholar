@@ -746,10 +746,10 @@ body {
     max-height: 280px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .paper-panel-header {
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -765,7 +765,6 @@ body {
 }
 
 .paper-search {
-    flex-shrink: 0;
     margin-bottom: 8px;
 }
 
@@ -857,7 +856,6 @@ body {
 }
 
 .paper-panel-footer {
-    flex-shrink: 0;
     margin-top: 8px;
     font-size: 11px;
     color: #78716c;
