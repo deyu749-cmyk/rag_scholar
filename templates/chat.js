@@ -214,14 +214,16 @@ function togglePaper(filename, checked) {
 }
 
 function selectAllPapers() {
+    const filterText = (document.getElementById('paper-search-input')?.value || '').trim().toLowerCase();
     for (const lib of selectedLibs) {
         const files = allPapers[lib] || [];
         files.forEach(f => {
+            if (filterText && !f.toLowerCase().includes(filterText)) return;
             if (!selectedFiles.includes(f)) selectedFiles.push(f);
         });
     }
     saveLibSelection();
-    buildPaperList(document.getElementById('paper-search-input')?.value || '');
+    buildPaperList(filterText);
     updateLibBarHint();
 }
 

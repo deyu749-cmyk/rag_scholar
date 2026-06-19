@@ -6,6 +6,7 @@
 - 深度分析
 """
 
+import re
 import requests
 from typing import Optional
 
@@ -174,9 +175,26 @@ def search_chunks(query: str, lib_names: list[str],
                 # 跳过 hash 记录
                 if metadata.get("type") == "file_hash":
                     continue
+
+                doc_text = results["documents"][0][i]
+                doc_lower = doc_text.lower()
+
+                # 低成本文本清洗：拦截纯参考文献列表块
+                ref_pattern_count = len(re.findall(r'\[\d+\]', doc_text))
+                has_journal_pattern = any(kw in doc_lower for kw in (
+                    'journal of', 'vol.', 'no.', 'pp.', 'doi', 'issn'
+                ))
+                if ref_pattern_count >= 3 and has_journal_pattern:
+                    continue  # 纯参考文献噪音，不进 Rerank
+
+                # 标记摘要/引言块（供后续分析阶段参考）
+                if any(kw in doc_lower for kw in ('abstract', 'keywords')):
+                    metadata = dict(metadata)
+                    metadata['is_abstract_chunk'] = True
+
                 all_results.append({
                     "id": doc_id,
-                    "document": results["documents"][0][i],
+                    "document": doc_text,
                     "metadata": metadata,
                     "distance": results["distances"][0][i] if results["distances"] else 0
                 })
