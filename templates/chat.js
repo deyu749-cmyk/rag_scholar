@@ -248,6 +248,7 @@ function updatePaperCount() {
 let recognition = null;
 let isListening = false;
 let voiceTranscript = '';  // accumulates final transcripts across auto-restarts
+let restartDelay = null;
 
 function initRecognition() {
     if (recognition) return;
@@ -280,15 +281,37 @@ function initRecognition() {
 
     recognition.onerror = (event) => {
         console.error('语音识别错误:', event.error);
-        stopListening();
-        if (event.error === 'not-allowed') {
-            showToast('请允许使用麦克风');
+        switch (event.error) {
+            case 'not-allowed':
+                showToast('麦克风权限被拒绝，请在浏览器设置中允许');
+                stopListening();
+                break;
+            case 'no-speech':
+                // 未检测到语音，自动重试（不停止聆听）
+                break;
+            case 'network':
+                showToast('语音识别需要网络连接，请检查网络');
+                stopListening();
+                break;
+            case 'audio-capture':
+                showToast('无法访问麦克风，请检查设备');
+                stopListening();
+                break;
+            default:
+                // aborted, bad-grammar, language-not-supported — 尝试重启
+                break;
         }
     };
 
     recognition.onend = () => {
         if (isListening) {
-            try { recognition.start(); } catch (e) {}
+            // 延迟300ms重启，避免Chrome瞬时报错
+            clearTimeout(restartDelay);
+            restartDelay = setTimeout(() => {
+                if (isListening) {
+                    try { recognition.start(); } catch (e) {}
+                }
+            }, 300);
         }
     };
 }
@@ -320,6 +343,7 @@ function startListening() {
 
 function stopListening() {
     isListening = false;
+    clearTimeout(restartDelay);
     const btn = document.getElementById('mic-btn');
     btn.classList.remove('listening');
     btn.title = '语音输入';

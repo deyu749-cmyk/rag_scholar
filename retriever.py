@@ -347,8 +347,8 @@ def analyze_with_chunks(query: str, results: list[dict]) -> str:
 以下是检索到的相关文献段落：
 
 {context}
-引用规则：当参考上述文献段落时，必须使用 [段落X] 或 [文献X] 的格式标注来源，例如：“如[段落3]所述...”
-请基于以上文献段落，对用户的问题进行深度学术分析。"""
+引用规则：当参考上述文献段落时，必须使用 [段落X] 的格式标注来源，例如：”如[段落3]所述...”
+请基于以上文献段落，对用户的问题进行深度学术分析。要求：尽可能广泛引用多个不同来源，展现多篇文献的观点。"""
 
     return call_claude(
         system_prompt=ANALYSIS_SYSTEM_PROMPT,
