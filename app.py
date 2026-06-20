@@ -22,6 +22,7 @@ from chat_router import handle_chat_message
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+CONVERSATIONS_DIR = os.path.join(BASE_DIR, "conversations")
 
 app = Flask(__name__, static_folder=TEMPLATES_DIR, static_url_path="")
 CORS(app)
@@ -431,6 +432,103 @@ def delete_index(lib_name):
         return jsonify({"error": f"删除失败: {str(e)}"}), 500
 
 
+# ===== 对话持久化 =====
+@app.route("/api/conversations", methods=["GET"])
+def list_conversations():
+    """列出所有对话（只返回摘要，不含 messages 体）"""
+    convs = []
+    if os.path.exists(CONVERSATIONS_DIR):
+        for fname in sorted(os.listdir(CONVERSATIONS_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            filepath = os.path.join(CONVERSATIONS_DIR, fname)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    conv = json.load(f)
+                convs.append({
+                    "id": conv.get("id", fname.replace(".json", "")),
+                    "title": conv.get("title", "未命名对话"),
+                    "updatedAt": conv.get("updatedAt", 0),
+                    "messageCount": len(conv.get("messages", []))
+                })
+            except Exception:
+                convs.append({
+                    "id": fname.replace(".json", ""),
+                    "title": "（读取失败）",
+                    "updatedAt": 0,
+                    "messageCount": 0
+                })
+    # 按更新时间降序
+    convs.sort(key=lambda c: c.get("updatedAt", 0), reverse=True)
+    return jsonify({"conversations": convs})
+
+
+@app.route("/api/conversations/<conv_id>", methods=["GET"])
+def get_conversation(conv_id):
+    """加载一个完整对话"""
+    # 安全检查：防止路径穿越
+    safe_id = os.path.basename(conv_id)
+    filepath = os.path.join(CONVERSATIONS_DIR, f"{safe_id}.json")
+    if not os.path.exists(filepath):
+        return jsonify({"error": "对话不存在"}), 404
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            conv = json.load(f)
+        return jsonify(conv)
+    except Exception as e:
+        return jsonify({"error": f"读取失败: {str(e)}"}), 500
+
+
+@app.route("/api/conversations", methods=["POST"])
+def save_conversation():
+    """保存或创建对话"""
+    data = request.get_json()
+    conv_id = data.get("id", "")
+    if not conv_id:
+        return jsonify({"error": "缺少对话 ID"}), 400
+    safe_id = os.path.basename(conv_id)
+    filepath = os.path.join(CONVERSATIONS_DIR, f"{safe_id}.json")
+
+    conv = {
+        "id": safe_id,
+        "title": data.get("title", "未命名对话"),
+        "messages": data.get("messages", []),
+        "libs": data.get("libs", []),
+        "files": data.get("files", []),
+        "createdAt": data.get("createdAt", 0) or 0,
+        "updatedAt": data.get("updatedAt", 0) or 0
+    }
+    # 如果文件已存在，保留原始 createdAt
+    if os.path.exists(filepath):
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+            conv["createdAt"] = existing.get("createdAt", conv["createdAt"])
+        except Exception:
+            pass
+
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(conv, f, ensure_ascii=False, indent=2)
+        return jsonify({"status": "ok", "id": safe_id})
+    except Exception as e:
+        return jsonify({"error": f"保存失败: {str(e)}"}), 500
+
+
+@app.route("/api/conversations/<conv_id>", methods=["DELETE"])
+def delete_conversation(conv_id):
+    """删除一个对话"""
+    safe_id = os.path.basename(conv_id)
+    filepath = os.path.join(CONVERSATIONS_DIR, f"{safe_id}.json")
+    if not os.path.exists(filepath):
+        return jsonify({"error": "对话不存在"}), 404
+    try:
+        os.remove(filepath)
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"error": f"删除失败: {str(e)}"}), 500
+
+
 # ===== 系统状态 =====
 @app.route("/api/status", methods=["GET"])
 def system_status():
@@ -457,6 +555,7 @@ def system_status():
 # ===== 启动 =====
 if __name__ == "__main__":
     os.makedirs(PAPERS_DIR, exist_ok=True)
+    os.makedirs(CONVERSATIONS_DIR, exist_ok=True)
     for lib in LIBRARIES:
         os.makedirs(os.path.join(PAPERS_DIR, lib), exist_ok=True)
 

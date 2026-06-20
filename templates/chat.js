@@ -545,11 +545,11 @@ function toggleRef(el) {
 }
 
 // ===== Conversation Management =====
-function loadConversationList() {
+async function loadConversationList() {
     try {
-        const saved = localStorage.getItem(STORAGE_CONVS_KEY);
-        const convs = saved ? JSON.parse(saved) : {};
-        renderConvDropdown(Object.values(convs));
+        const res = await fetch('/api/conversations');
+        const data = await res.json();
+        renderConvDropdown(data.conversations || []);
     } catch (e) {
         renderConvDropdown([]);
     }
@@ -572,7 +572,7 @@ function renderConvDropdown(convs) {
         item.className = 'conv-item' + (conv.id === activeConversationId ? ' active' : '');
         const title = conv.title || '未命名对话';
         const date = conv.updatedAt ? new Date(conv.updatedAt).toLocaleString('zh-CN') : '';
-        const msgCount = conv.messages ? conv.messages.length : 0;
+        const msgCount = conv.messageCount || (conv.messages ? conv.messages.length : 0);
         item.innerHTML = `
             <div class="conv-item-main" onclick="switchConversation('${conv.id}')">
                 <span class="conv-item-title">${escapeHtml(title)}</span>
@@ -626,128 +626,141 @@ function newConversation() {
     showToast('已开始新对话');
 }
 
-function saveConversationAs() {
+async function saveConversationAs() {
     const title = prompt('请输入对话名称：', '对话 ' + new Date().toLocaleDateString('zh-CN'));
     if (!title) return;
 
     const id = activeConversationId || 'conv_' + Date.now();
     activeConversationId = id;
 
-    const stored = getStoredConversations();
-    stored[id] = {
+    await saveConversationToServer({
         id,
         title,
         messages: chatMessages,
         libs: selectedLibs,
         files: selectedFiles,
-        createdAt: stored[id]?.createdAt || Date.now(),
         updatedAt: Date.now()
-    };
-    saveStoredConversations(stored);
+    });
 
     document.getElementById('conv-label').textContent = title;
     showToast('对话已保存: ' + title);
 }
 
 function saveActiveConversation() {
-    if (!activeConversationId) return;
-    const stored = getStoredConversations();
-    if (stored[activeConversationId]) {
-        stored[activeConversationId].messages = chatMessages;
-        stored[activeConversationId].libs = selectedLibs;
-        stored[activeConversationId].files = selectedFiles;
-        stored[activeConversationId].updatedAt = Date.now();
-        saveStoredConversations(stored);
+    if (chatMessages.length === 0) return;
+    if (!activeConversationId) {
+        // Auto-create a new conversation on first message
+        activeConversationId = 'conv_' + Date.now();
+        document.getElementById('conv-label').textContent = '新对话';
     }
+    saveConversationToServer({
+        id: activeConversationId,
+        title: document.getElementById('conv-label')?.textContent || '未命名对话',
+        messages: chatMessages,
+        libs: selectedLibs,
+        files: selectedFiles,
+        updatedAt: Date.now()
+    });
 }
 
-function switchConversation(id) {
-    const stored = getStoredConversations();
-    const conv = stored[id];
-    if (!conv) return;
-
+async function switchConversation(id) {
     if (chatMessages.length > 0 && activeConversationId !== id) {
-        // Auto-save current before switching
+        // Auto-save current before switching (fire-and-forget)
         saveActiveConversation();
     }
 
-    activeConversationId = id;
-    chatMessages = conv.messages || [];
-    selectedLibs = conv.libs || [];
-    selectedFiles = conv.files || [];
-
-    saveLibSelection();
-    saveChatHistory();
-
-    // Refresh UI
-    document.querySelectorAll('.lib-chip').forEach(chip => {
-        if (selectedLibs.includes(chip.dataset.lib)) {
-            chip.classList.add('active');
-        } else {
-            chip.classList.remove('active');
+    try {
+        const res = await fetch('/api/conversations/' + encodeURIComponent(id));
+        if (!res.ok) {
+            showToast('对话加载失败');
+            return;
         }
-    });
-    updateLibBarHint();
-    document.getElementById('paper-panel').style.display = 'none';
+        const conv = await res.json();
 
-    if (chatMessages.length > 0) {
-        hideEmptyState();
-    } else {
-        document.getElementById('chat-empty').style.display = '';
-    }
-    renderAllMessages();
-    document.getElementById('conv-label').textContent = conv.title || '未命名';
+        activeConversationId = id;
+        chatMessages = conv.messages || [];
+        selectedLibs = conv.libs || [];
+        selectedFiles = conv.files || [];
 
-    const dd = document.getElementById('conv-dropdown');
-    dd.classList.remove('show');
+        saveLibSelection();
+        saveChatHistory();
 
-    showToast('已切换到: ' + (conv.title || '未命名'));
-}
-
-function deleteConversation(id) {
-    const stored = getStoredConversations();
-    const conv = stored[id];
-    if (!conv) return;
-    if (!confirm(`确定要删除对话"${conv.title || '未命名'}"吗？此操作不可撤销。`)) return;
-
-    delete stored[id];
-    saveStoredConversations(stored);
-
-    if (activeConversationId === id) {
-        activeConversationId = null;
-        document.getElementById('conv-label').textContent = '新对话';
-    }
-
-    loadConversationList();
-    document.getElementById('conv-dropdown').classList.add('show'); // Keep open
-    showToast('对话已删除');
-}
-
-function getStoredConversations() {
-    try {
-        const saved = localStorage.getItem(STORAGE_CONVS_KEY);
-        return saved ? JSON.parse(saved) : {};
-    } catch (e) { return {}; }
-}
-
-function saveStoredConversations(stored) {
-    try {
-        localStorage.setItem(STORAGE_CONVS_KEY, JSON.stringify(stored));
-        localStorage.setItem(STORAGE_ACTIVE_CONV, activeConversationId || '');
-    } catch (e) {}
-}
-
-function loadActiveConversation() {
-    try {
-        const id = localStorage.getItem(STORAGE_ACTIVE_CONV);
-        if (id) {
-            const stored = getStoredConversations();
-            if (stored[id]) {
-                switchConversation(id);
-                return;
+        // Refresh UI
+        document.querySelectorAll('.lib-chip').forEach(chip => {
+            if (selectedLibs.includes(chip.dataset.lib)) {
+                chip.classList.add('active');
+            } else {
+                chip.classList.remove('active');
             }
+        });
+        updateLibBarHint();
+        document.getElementById('paper-panel').style.display = 'none';
+
+        if (chatMessages.length > 0) {
+            hideEmptyState();
+        } else {
+            document.getElementById('chat-empty').style.display = '';
         }
-    } catch (e) {}
+        renderAllMessages();
+        document.getElementById('conv-label').textContent = conv.title || '未命名';
+
+        const dd = document.getElementById('conv-dropdown');
+        dd.classList.remove('show');
+
+        showToast('已切换到: ' + (conv.title || '未命名'));
+    } catch (e) {
+        showToast('对话加载失败: ' + e.message);
+    }
+}
+
+async function deleteConversation(id) {
+    if (!confirm('确定要删除该对话吗？此操作不可撤销。')) return;
+
+    try {
+        const res = await fetch('/api/conversations/' + encodeURIComponent(id), { method: 'DELETE' });
+        if (!res.ok) {
+            showToast('删除失败');
+            return;
+        }
+
+        if (activeConversationId === id) {
+            activeConversationId = null;
+            document.getElementById('conv-label').textContent = '新对话';
+        }
+
+        await loadConversationList();
+        document.getElementById('conv-dropdown').classList.add('show'); // Keep open
+        showToast('对话已删除');
+    } catch (e) {
+        showToast('删除失败: ' + e.message);
+    }
+}
+
+async function saveConversationToServer(conv) {
+    try {
+        await fetch('/api/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(conv)
+        });
+    } catch (e) {
+        console.error('保存对话失败:', e);
+    }
+}
+
+async function loadActiveConversation() {
+    try {
+        const res = await fetch('/api/conversations');
+        const data = await res.json();
+        const convs = data.conversations || [];
+        if (convs.length > 0) {
+            // Auto-load the most recently updated conversation
+            await switchConversation(convs[0].id);
+            return;
+        }
+    } catch (e) {
+        console.error('加载对话列表失败:', e);
+    }
     // Default: no active conversation, empty state
     chatMessages = [];
     activeConversationId = null;
