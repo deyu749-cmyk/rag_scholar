@@ -165,7 +165,7 @@ def _format_execution_result(exec_result: dict,
         return (
             f"检索模式: {data.get('mode', 'chunks')}\n"
             f"分析结果:\n{data.get('analysis', '')}\n\n"
-            f"检索到的文献原文（共{len(data.get('results', []))}条，请尽可能引用至少5个不同来源）:\n{refs_text}"
+            f"检索到的文献原文（共{len(data.get('results', []))}条，请尽可能引用至少20个不同来源的文件）:\n{refs_text}"
             f"{empty_note}{filter_note}",
             refs_map
         )
