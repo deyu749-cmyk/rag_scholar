@@ -26,8 +26,9 @@ COHERE_RERANK_MODEL = "rerank-v3.5"
 # ===== ChromaDB =====
 CHROMA_PERSIST_DIR = "./chroma_db"
 
+import os as _os
 # ===== 文献库配置 =====
-PAPERS_DIR = "./papers"
+PAPERS_DIR = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "papers")
 LIBRARIES = ["Coetzee", "Gurnah", "Introduction", "Mahfouz", "Soyinka","Gordimer"]
 
 # ===== 分块参数 =====
