@@ -597,13 +597,10 @@ function toggleConvMenu() {
     loadConversationList(); // Refresh list
 }
 
-function newConversation() {
+async function newConversation() {
+    // Auto-save current conversation silently if it has messages
     if (chatMessages.length > 0) {
-        if (!confirm('开始新对话前，是否保存当前对话？\n\n点击"确定"保存后新建，点击"取消"直接新建（不保存）。')) {
-            // Just start fresh
-        } else {
-            saveConversationAs();
-        }
+        saveActiveConversation();
     }
 
     chatMessages = [];
@@ -619,11 +616,43 @@ function newConversation() {
     document.getElementById('chat-empty').style.display = '';
     saveChatHistory();
 
+    // Auto-generate numbered name: 对话1, 对话2, ...
+    const autoTitle = await nextConvTitle();
+
+    activeConversationId = 'conv_' + Date.now();
+    await saveConversationToServer({
+        id: activeConversationId,
+        title: autoTitle,
+        messages: [],
+        libs: [],
+        files: [],
+        updatedAt: Date.now()
+    });
+    document.getElementById('conv-label').textContent = autoTitle;
+
     const dd = document.getElementById('conv-dropdown');
     dd.classList.remove('show');
-    document.getElementById('conv-label').textContent = '新对话';
 
-    showToast('已开始新对话');
+    showToast('已开始新对话（旧对话已自动保存）');
+}
+
+async function nextConvTitle() {
+    try {
+        const res = await fetch('/api/conversations');
+        const data = await res.json();
+        const convs = data.conversations || [];
+        let maxN = 0;
+        convs.forEach(c => {
+            const m = (c.title || '').match(/^对话(\d+)$/);
+            if (m) {
+                const n = parseInt(m[1], 10);
+                if (n > maxN) maxN = n;
+            }
+        });
+        return '对话' + (maxN + 1);
+    } catch (e) {
+        return '对话 ' + new Date().toLocaleDateString('zh-CN');
+    }
 }
 
 async function saveConversationAs() {
